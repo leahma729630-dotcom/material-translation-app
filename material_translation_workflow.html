@@ -1,0 +1,1053 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>素材翻译工作台</title>
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --panel: #ffffff;
+      --panel-2: #f9fbfd;
+      --text: #172033;
+      --muted: #667085;
+      --border: #d9e1ec;
+      --border-strong: #b8c4d6;
+      --accent: #176b87;
+      --accent-2: #2f8f6f;
+      --accent-soft: #e7f4f3;
+      --warning: #b55b16;
+      --danger: #b42318;
+      --ok: #177245;
+      --shadow: 0 16px 36px rgba(31, 45, 61, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--text);
+      background: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    button, input, textarea, select { font: inherit; }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      background: #fff;
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      width: min(1440px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 18px 0;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.25;
+      font-weight: 750;
+    }
+
+    .subtitle {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 34px;
+      padding: 7px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel-2);
+      color: #344054;
+      white-space: nowrap;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--border-strong);
+    }
+
+    .dot.running { background: var(--warning); }
+    .dot.done { background: var(--ok); }
+    .dot.error { background: var(--danger); }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+      gap: 18px;
+      width: min(1440px, calc(100% - 40px));
+      margin: 18px auto 36px;
+      align-items: start;
+    }
+
+    .panel {
+      min-width: 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 52px;
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 750;
+    }
+
+    .panel-body {
+      min-width: 0;
+      padding: 16px;
+    }
+
+    .stack { display: grid; gap: 14px; }
+    .field { display: grid; min-width: 0; gap: 7px; }
+
+    label {
+      color: #344054;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    input[type="text"], input[type="password"], textarea, select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--text);
+      outline: none;
+    }
+
+    input, select {
+      min-height: 38px;
+      padding: 8px 10px;
+    }
+
+    textarea {
+      min-height: 126px;
+      padding: 10px;
+      resize: vertical;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(23, 107, 135, 0.13);
+    }
+
+    .upload {
+      position: relative;
+      display: grid;
+      min-width: 0;
+      min-height: 250px;
+      place-items: center;
+      overflow: hidden;
+      border: 1.5px dashed var(--border-strong);
+      border-radius: 8px;
+      background: #f7fafc;
+      transition: border-color 160ms ease, background 160ms ease;
+    }
+
+    .upload.dragging {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .upload input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+    }
+
+    .upload-label {
+      display: grid;
+      gap: 7px;
+      place-items: center;
+      padding: 20px;
+      cursor: pointer;
+      color: #475467;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .upload-label .icon {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border-radius: 8px;
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+
+    .preview {
+      display: none;
+      width: 100%;
+      max-height: 380px;
+      object-fit: contain;
+      background: #eef2f6;
+    }
+
+    .upload.has-image .preview { display: block; }
+    .upload.has-image .upload-label { display: none; }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+    }
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 38px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: #fff;
+      color: #25324a;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    button.primary {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #fff;
+    }
+
+    button.secondary {
+      border-color: #b5d8cc;
+      background: #eaf6f1;
+      color: #17604a;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+
+    .workflow {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(150px, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .step {
+      min-height: 74px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .step.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .step-name {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 750;
+    }
+
+    .step-main {
+      margin-top: 5px;
+      font-weight: 760;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      padding: 6px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel-2);
+    }
+
+    .tab {
+      min-height: 34px;
+      flex: 1;
+      border-color: transparent;
+      background: transparent;
+      color: #475467;
+    }
+
+    .tab.active {
+      border-color: var(--border);
+      background: #fff;
+      color: var(--accent);
+      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    .json-box {
+      min-height: 220px;
+      white-space: pre-wrap;
+      overflow: auto;
+    }
+
+    .language-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 9px;
+    }
+
+    .language {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 38px;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: #fff;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .language input { width: 16px; height: 16px; min-height: auto; }
+
+    .switch-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 36px;
+      color: #344054;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .switch-row input {
+      width: 16px;
+      height: 16px;
+      min-height: auto;
+    }
+
+    .results {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .result-card {
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .result-card img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: contain;
+      background: #eef2f6;
+    }
+
+    .result-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    .log {
+      max-height: 160px;
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: #101828;
+      color: #d0d5dd;
+      padding: 10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 980px) {
+      main { grid-template-columns: 1fr; }
+      .workflow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .language-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 560px) {
+      .header-inner { align-items: flex-start; flex-direction: column; }
+      .row, .workflow { grid-template-columns: 1fr; }
+      main, .header-inner { width: min(100% - 24px, 1440px); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div>
+        <h1>素材翻译工作台</h1>
+        <div class="subtitle">图片 OCR 提取、多语广告文案本地化、高保真替换出图</div>
+      </div>
+      <div class="status-pill"><span id="statusDot" class="dot"></span><span id="statusText">等待素材</span></div>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel">
+      <div class="panel-header">
+        <h2 class="panel-title">输入与配置</h2>
+      </div>
+      <div class="panel-body stack">
+        <div class="upload" id="dropZone">
+          <img id="preview" class="preview" alt="素材预览">
+          <label class="upload-label" for="imageInput">
+            <span class="icon">↑</span>
+            <span>上传广告素材图片</span>
+            <span class="hint">PNG / JPG / WebP</span>
+          </label>
+          <input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp">
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="apiBase">API Base</label>
+            <input id="apiBase" type="text" value="https://api.himodels.ai/v1">
+          </div>
+          <div class="field">
+            <label for="apiKey">API Key</label>
+            <input id="apiKey" type="password" placeholder="填入三方 Authorization 值">
+          </div>
+        </div>
+
+        <label class="switch-row">
+          <input id="useProxy" type="checkbox" checked>
+          <span>通过代理转发 API 请求</span>
+        </label>
+
+        <div class="row">
+          <div class="field">
+            <label for="authMode">Authorization 格式</label>
+            <select id="authMode">
+              <option value="raw">原样传入：Authorization: xxxxx</option>
+              <option value="bearer">Bearer：Authorization: Bearer xxxxx</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="textEndpoint">文本节点路径</label>
+            <input id="textEndpoint" type="text" value="/chat/completions">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="textApiMode">文本接口格式</label>
+            <select id="textApiMode">
+              <option value="chat">Chat Completions</option>
+              <option value="responses">Responses</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="textModel">OCR / 翻译模型</label>
+            <input id="textModel" type="text" value="gpt luna low">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label for="imageModel">图片替换模型</label>
+            <input id="imageModel" type="text" value="gpt-image-2">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>目标语言</label>
+          <div class="language-grid" id="languageGrid"></div>
+        </div>
+
+        <div class="actions">
+          <button id="runAll" class="primary">运行全流程</button>
+          <button id="runOcr">只做 OCR</button>
+          <button id="runTranslate">只做翻译</button>
+          <button id="runImages" class="secondary">只生成图片</button>
+        </div>
+
+        <div class="hint">公开分享时建议保持代理转发开启，并把页面部署到同一个后端服务下，避免浏览器跨域拦截。</div>
+      </div>
+    </section>
+
+    <section>
+      <div class="workflow">
+        <div class="step active" data-step="upload"><div class="step-name">STEP 1</div><div class="step-main">输入图片</div></div>
+        <div class="step" data-step="ocr"><div class="step-name">STEP 2</div><div class="step-main">OCR 提取</div></div>
+        <div class="step" data-step="translate"><div class="step-name">STEP 3</div><div class="step-main">多语翻译</div></div>
+        <div class="step" data-step="image"><div class="step-name">STEP 4</div><div class="step-main">替换出图</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">流程产物</h2>
+          <div class="tabs">
+            <button class="tab active" data-tab="ocr">OCR JSON</button>
+            <button class="tab" data-tab="translation">翻译 JSON</button>
+            <button class="tab" data-tab="images">输出图片</button>
+            <button class="tab" data-tab="prompts">提示词</button>
+          </div>
+        </div>
+
+        <div class="panel-body">
+          <div id="tab-ocr" class="tab-panel active stack">
+            <textarea id="ocrOutput" class="json-box" placeholder="OCR 提取结果会显示在这里，可手动编辑后继续翻译。"></textarea>
+          </div>
+
+          <div id="tab-translation" class="tab-panel stack">
+            <textarea id="translationOutput" class="json-box" placeholder="多语言翻译结果会显示在这里，可手动编辑后继续生成图片。"></textarea>
+          </div>
+
+          <div id="tab-images" class="tab-panel stack">
+            <div class="results" id="results"></div>
+          </div>
+
+          <div id="tab-prompts" class="tab-panel stack">
+            <div class="field">
+              <label for="ocrPrompt">OCR 提示词</label>
+              <textarea id="ocrPrompt"></textarea>
+            </div>
+            <div class="field">
+              <label for="translationPrompt">翻译提示词</label>
+              <textarea id="translationPrompt"></textarea>
+            </div>
+            <div class="field">
+              <label for="imagePrompt">图片替换提示词模板</label>
+              <textarea id="imagePrompt"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:14px;">
+        <div class="panel-header">
+          <h2 class="panel-title">运行日志</h2>
+          <button id="clearLog">清空</button>
+        </div>
+        <div class="panel-body">
+          <div id="log" class="log">Ready.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const languages = [
+      { key: "ja", label: "日语" },
+      { key: "th", label: "泰语" },
+      { key: "pcm", label: "尼日利亚皮钦语" },
+      { key: "ur", label: "乌尔都语" },
+      { key: "id", label: "印尼语" }
+    ];
+
+    const defaultOcrPrompt = `角色设定：
+你是一位资深的商业化广告素材分析专家。
+任务说明：
+请对广告素材图像进行精准的文本提取。你需要区分“海报营销层”与“设备Mockup演示层”，仅提取海报本身的营销文案。
+排除规则：
+1.排除品牌与广告主身份：禁止提取品牌 Logo、广告主名称、以及企业主体标识。
+2.排除Mockup内部界面文案：禁止提取图片中出现的手机、平板或电脑屏幕内部的所有文字（如：APP 内部的功能按钮、虚拟账户名、虚拟余额、UI 菜单等）。
+3.排除背景干扰：忽略水印、背景装饰文字以及极小的合规性版权声明。
+提取目标：
+仅提取位于海报物理背景上、直接面向观众的营销文本：
+1. 主标题 ：画面中核心的、字号最大的营销口号。
+2. 营销利益点：海报背景上的描述性文字，如促销力度、引导语（不含设备屏幕内文字）。
+3. 行动号召：海报层级的引导按钮或下载指令。
+输出格式：
+请直接输出 JSON 格式结果，不要包含任何多余解释。
+{
+  "headline": "提取的主标题文本，若无则输出 null",
+  "selling_points": [
+    "仅限海报背景层的卖点文案1",
+    "仅限海报背景层的卖点文案2"
+  ],
+  "cta_text": "海报层级的引导文本，若无则输出 null"
+}`;
+
+    const defaultTranslationPrompt = `角色设定：
+你是一位深谙日本、泰国、韩国、尼日利亚、巴基斯坦、印度尼西亚本土文化、精通高转化率广告文案的资深本地化翻译专家。你极其擅长使用纯正、地道的日语、泰语、尼日利亚皮钦语（Nigerian Pidgin English）、乌尔都语、印尼语进行商业营销沟通。
+任务说明：
+你将接收一段JSON格式的英语广告文案数据。请将其中的文本值（Values）分别翻译为日语、泰语、尼日利亚皮钦语（Nigerian Pidgin English）、乌尔都语、印尼语，并严格保留原始的JSON键名（Keys）结构输出。
+本地化翻译规则：
+1. 纯正地道：必须使用大众日常使用的本地词汇和句法。坚决抵制生硬的字典式直译，确保文案让当地人读起来感觉亲切、信任。
+2. 高点击导向：翻译必须保留广告的煽动性、紧迫感和利益驱动力。
+   - 要极具抓手，能瞬间吸引注意力。
+   - 卖点传递必须简单直接，击中用户痛点。
+   - 行动号召必须具有强烈的促动性，使用短促有力的动词短语。
+3. 视觉排版友好：考虑到广告海报的排版空间受限，译文必须尽量简练，避免冗长拖沓的从句。
+输出要求：
+1. 保持输入时的JSON结构不变（保留 headline, selling_points, cta_text 等 Key）。
+2. selling_points 数组内的每一项都需要单独翻译，保持数组结构。
+3. 只输出最终的JSON 纯文本。绝对不要输出任何markdown代码块标记（如 \`\`\`json ），也不要包含任何解释、问候或分析过程。
+输出结构：
+{
+  "ja": { "headline": null, "selling_points": [], "cta_text": null },
+  "th": { "headline": null, "selling_points": [], "cta_text": null },
+  "pcm": { "headline": null, "selling_points": [], "cta_text": null },
+  "ur": { "headline": null, "selling_points": [], "cta_text": null },
+  "id": { "headline": null, "selling_points": [], "cta_text": null }
+}`;
+
+    const defaultImagePrompt = `角色与任务
+你是一位专业的商业图像编辑专家。你的任务是对提供的广告素材图像进行高保真的文本替换（本地化）。
+全局保留（严格规则）
+1. 绝对不要更改、修改或重新生成任何非文本的视觉元素。
+2. 严格保留原始的背景颜色、纹理、光影、人物以及产品演示画面（例如：手机及其内部的 UI 界面）。
+编辑指令
+请根据下方的映射关系，用本地化（翻译后）的文本替换原始文本。在移除原始文本的区域，必须无缝修补并融合背景。
+[文本替换映射]
+{{MAPPINGS}}
+排版与字体匹配（严格执行）
+在渲染新文本时，你必须全方位、严格地复制原始图像的文字排版与样式：
+- 字体颜色严格一致：新文本的RGB/Hex颜色值必须与所替换的原始文本保持100%绝对一致。禁止擅自更改文字颜色，禁止生成“近似”或“平均”颜色。
+- 分层特效复刻：如果原文字有描边（Stroke）、外部阴影（Outer Shadow）、内阴影（Inner Shadow）或发光特效，你必须在对应的新文本上，按相同的颜色、距离、扩散和不透明度进行复刻。确保字体的“填充色”和“特效色”区分清晰。
+- 布局匹配：保持完全相同的文字布局、对齐方式和文本边界框（Bounding Box）。
+- 字型风格：匹配字重（粗体/常规）和字体族风格（如：无衬线体）。
+请确保生成的本地化文本拼写 100% 准确，绝对不能出现字母缺失或 AI 幻觉生成的乱码拼写。`;
+
+    const state = {
+      imageFile: null,
+      imageDataUrl: "",
+      ocr: null,
+      translations: null
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function init() {
+      $("ocrPrompt").value = defaultOcrPrompt;
+      $("translationPrompt").value = defaultTranslationPrompt;
+      $("imagePrompt").value = defaultImagePrompt;
+      renderLanguages();
+      wireEvents();
+    }
+
+    function renderLanguages() {
+      $("languageGrid").innerHTML = languages.map((lang) => `
+        <label class="language">
+          <input type="checkbox" value="${lang.key}" checked>
+          <span>${lang.label}</span>
+        </label>
+      `).join("");
+    }
+
+    function wireEvents() {
+      $("imageInput").addEventListener("change", (event) => {
+        const file = event.target.files[0];
+        if (file) loadImage(file);
+      });
+
+      ["dragenter", "dragover"].forEach((name) => {
+        $("dropZone").addEventListener(name, (event) => {
+          event.preventDefault();
+          $("dropZone").classList.add("dragging");
+        });
+      });
+      ["dragleave", "drop"].forEach((name) => {
+        $("dropZone").addEventListener(name, (event) => {
+          event.preventDefault();
+          $("dropZone").classList.remove("dragging");
+        });
+      });
+      $("dropZone").addEventListener("drop", (event) => {
+        const file = event.dataTransfer.files[0];
+        if (file) loadImage(file);
+      });
+
+      document.querySelectorAll(".tab").forEach((button) => {
+        button.addEventListener("click", () => switchTab(button.dataset.tab));
+      });
+
+      $("runAll").addEventListener("click", runAll);
+      $("runOcr").addEventListener("click", runOcr);
+      $("runTranslate").addEventListener("click", runTranslate);
+      $("runImages").addEventListener("click", runImages);
+      $("clearLog").addEventListener("click", () => $("log").textContent = "Ready.");
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll(".tab").forEach((button) => button.classList.toggle("active", button.dataset.tab === tab));
+      document.querySelectorAll(".tab-panel").forEach((panel) => panel.classList.toggle("active", panel.id === `tab-${tab}`));
+    }
+
+    function loadImage(file) {
+      state.imageFile = file;
+      const reader = new FileReader();
+      reader.onload = () => {
+        state.imageDataUrl = reader.result;
+        $("preview").src = state.imageDataUrl;
+        $("dropZone").classList.add("has-image");
+        setStatus("done", "图片已载入");
+        setStep("upload");
+        log(`Loaded image: ${file.name}`);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function selectedLanguages() {
+      return Array.from(document.querySelectorAll("#languageGrid input:checked")).map((input) => input.value);
+    }
+
+    function getConfig() {
+      const base = $("apiBase").value.trim().replace(/\/$/, "");
+      const key = $("apiKey").value.trim();
+      if (!base) throw new Error("请填写 API Base。");
+      if (!key) throw new Error("请填写 API Key。");
+      return {
+        base,
+        key,
+        textModel: $("textModel").value.trim(),
+        imageModel: $("imageModel").value.trim(),
+        authHeader: $("authMode").value === "bearer" ? `Bearer ${key}` : key,
+        textEndpoint: normalizeEndpoint($("textEndpoint").value.trim() || "/responses"),
+        textApiMode: $("textApiMode").value,
+        useProxy: $("useProxy").checked
+      };
+    }
+
+    async function runAll() {
+      await guarded(async () => {
+        await runOcr(false);
+        await runTranslate(false);
+        await runImages(false);
+      });
+    }
+
+    async function runOcr(guard = true) {
+      const task = async () => {
+        if (!state.imageFile || !state.imageDataUrl) throw new Error("请先上传图片。");
+        const config = getConfig();
+        setStatus("running", "正在 OCR");
+        setStep("ocr");
+        switchTab("ocr");
+        log(`OCR request: ${apiUrl(config, config.textEndpoint)} | ${config.textApiMode} | ${config.textModel}`);
+        const result = await callTextModel(config, [
+          {
+            role: "user",
+            content: [
+              { type: "input_text", text: $("ocrPrompt").value },
+              { type: "input_image", image_url: state.imageDataUrl }
+            ]
+          }
+        ]);
+        state.ocr = parseJsonPayload(result);
+        $("ocrOutput").value = JSON.stringify(state.ocr, null, 2);
+        setStatus("done", "OCR 完成");
+        log("OCR completed.");
+      };
+      return guard ? guarded(task) : task();
+    }
+
+    async function runTranslate(guard = true) {
+      const task = async () => {
+        const config = getConfig();
+        const ocr = readJsonFromTextarea("ocrOutput", "OCR JSON");
+        const langs = selectedLanguages();
+        if (!langs.length) throw new Error("请至少选择一种目标语言。");
+        setStatus("running", "正在翻译");
+        setStep("translate");
+        switchTab("translation");
+        log(`Translation request: ${apiUrl(config, config.textEndpoint)} | ${config.textApiMode} | ${config.textModel}`);
+        const prompt = `${$("translationPrompt").value}\n\n目标语言代码：${langs.join(", ")}\n\n输入数据：\n${JSON.stringify(ocr)}`;
+        const result = await callTextModel(config, [
+          { role: "user", content: [{ type: "input_text", text: prompt }] }
+        ]);
+        const parsed = parseJsonPayload(result);
+        state.translations = filterLanguages(parsed, langs);
+        $("translationOutput").value = JSON.stringify(state.translations, null, 2);
+        setStatus("done", "翻译完成");
+        log("Translation completed.");
+      };
+      return guard ? guarded(task) : task();
+    }
+
+    async function runImages(guard = true) {
+      const task = async () => {
+        if (!state.imageFile) throw new Error("请先上传图片。");
+        const config = getConfig();
+        const ocr = readJsonFromTextarea("ocrOutput", "OCR JSON");
+        const translations = readJsonFromTextarea("translationOutput", "翻译 JSON");
+        const langs = selectedLanguages().filter((lang) => translations[lang]);
+        if (!langs.length) throw new Error("翻译 JSON 中没有已选择语言的数据。");
+        setStatus("running", "正在生成图片");
+        setStep("image");
+        switchTab("images");
+        $("results").innerHTML = "";
+
+        for (const lang of langs) {
+          log(`Image request: ${apiUrl(config, "/images/edits")} | ${config.imageModel} | ${lang}`);
+          const prompt = buildImagePrompt(ocr, translations[lang]);
+          const imageUrl = await callImageEdit(config, prompt, state.imageFile);
+          addResult(lang, imageUrl);
+        }
+
+        setStatus("done", "全部完成");
+        log("Image generation completed.");
+      };
+      return guard ? guarded(task) : task();
+    }
+
+    async function guarded(task) {
+      setButtonsDisabled(true);
+      try {
+        await task();
+      } catch (error) {
+        setStatus("error", "运行失败");
+        log(`Error: ${error.message}`);
+      } finally {
+        setButtonsDisabled(false);
+      }
+    }
+
+    async function callTextModel(config, input) {
+      if (config.textApiMode === "chat") return callChatCompletions(config, input);
+      return callResponses(config, input);
+    }
+
+    async function callResponses(config, input) {
+      const response = await fetch(apiUrl(config, config.textEndpoint), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": config.authHeader,
+          "X-API-Base": config.base
+        },
+        body: JSON.stringify({
+          model: config.textModel,
+          input,
+          text: { format: { type: "json_object" } }
+        })
+      });
+      const data = await readApiResponse(response);
+      return extractResponseText(data);
+    }
+
+    async function callChatCompletions(config, input) {
+      const messages = input.map((message) => ({
+        role: message.role,
+        content: message.content.map((part) => {
+          if (part.type === "input_text") return { type: "text", text: part.text };
+          if (part.type === "input_image") return { type: "image_url", image_url: { url: part.image_url } };
+          return part;
+        })
+      }));
+
+      const response = await fetch(apiUrl(config, config.textEndpoint), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": config.authHeader,
+          "X-API-Base": config.base
+        },
+        body: JSON.stringify({
+          model: config.textModel,
+          messages,
+          response_format: { type: "json_object" }
+        })
+      });
+      const data = await readApiResponse(response);
+      return extractResponseText(data);
+    }
+
+    async function callImageEdit(config, prompt, imageFile) {
+      const form = new FormData();
+      form.append("model", config.imageModel);
+      form.append("image", imageFile, imageFile.name || "creative.png");
+      form.append("prompt", prompt);
+      form.append("size", "auto");
+
+      const response = await fetch(apiUrl(config, "/images/edits"), {
+        method: "POST",
+        headers: {
+          "Authorization": config.authHeader,
+          "X-API-Base": config.base
+        },
+        body: form
+      });
+      const data = await readApiResponse(response);
+      const item = data.data && data.data[0];
+      if (!item) throw new Error("图片接口未返回 data[0]。");
+      if (item.url) return item.url;
+      if (item.b64_json) return `data:image/png;base64,${item.b64_json}`;
+      throw new Error("图片接口未返回 url 或 b64_json。");
+    }
+
+    async function readApiResponse(response) {
+      const text = await response.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error(`API 返回非 JSON：${text.slice(0, 180)}`);
+      }
+      if (!response.ok) {
+        const message = data.error && data.error.message ? data.error.message : response.statusText;
+        throw new Error(`HTTP ${response.status}: ${message}`);
+      }
+      return data;
+    }
+
+    function extractResponseText(data) {
+      if (data.output_text) return data.output_text;
+      if (data.choices?.[0]?.message?.content) return data.choices[0].message.content;
+      const chunks = [];
+      for (const item of data.output || []) {
+        for (const content of item.content || []) {
+          if (content.text) chunks.push(content.text);
+        }
+      }
+      if (chunks.length) return chunks.join("\n");
+      throw new Error("文本接口未返回 output_text。");
+    }
+
+    function parseJsonPayload(text) {
+      const cleaned = String(text).trim().replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
+      try {
+        return JSON.parse(cleaned);
+      } catch {
+        const start = cleaned.indexOf("{");
+        const end = cleaned.lastIndexOf("}");
+        if (start >= 0 && end > start) return JSON.parse(cleaned.slice(start, end + 1));
+        throw new Error("模型输出不是有效 JSON。");
+      }
+    }
+
+    function readJsonFromTextarea(id, label) {
+      const text = $(id).value.trim();
+      if (!text) throw new Error(`${label} 为空。`);
+      try {
+        return JSON.parse(text);
+      } catch {
+        throw new Error(`${label} 不是有效 JSON。`);
+      }
+    }
+
+    function filterLanguages(payload, langs) {
+      const result = {};
+      for (const lang of langs) {
+        if (payload[lang]) result[lang] = payload[lang];
+      }
+      return Object.keys(result).length ? result : payload;
+    }
+
+    function buildImagePrompt(original, translated) {
+      const mappings = [];
+      if (original.headline || translated.headline) {
+        mappings.push(`- 定位原始主标题："${safeText(original.headline)}"\n- 替换为本地化主标题："${safeText(translated.headline)}"`);
+      }
+      const originalPoints = Array.isArray(original.selling_points) ? original.selling_points : [];
+      const translatedPoints = Array.isArray(translated.selling_points) ? translated.selling_points : [];
+      const count = Math.max(originalPoints.length, translatedPoints.length);
+      for (let index = 0; index < count; index += 1) {
+        mappings.push(`- 定位原始卖点文案 ${index + 1}："${safeText(originalPoints[index])}"\n- 替换为本地化卖点文案 ${index + 1}："${safeText(translatedPoints[index])}"`);
+      }
+      if (original.cta_text || translated.cta_text) {
+        mappings.push(`- 定位原始行动号召 (CTA)："${safeText(original.cta_text)}"\n- 替换为本地化行动号召 (CTA)："${safeText(translated.cta_text)}"`);
+      }
+      return $("imagePrompt").value.replace("{{MAPPINGS}}", mappings.join("\n"));
+    }
+
+    function safeText(value) {
+      return value == null ? "" : String(value).replaceAll('"', '\\"');
+    }
+
+    function normalizeEndpoint(value) {
+      return value.startsWith("/") ? value : `/${value}`;
+    }
+
+    function apiUrl(config, endpoint) {
+      return config.useProxy ? `/api/proxy${normalizeEndpoint(endpoint)}` : `${config.base}${normalizeEndpoint(endpoint)}`;
+    }
+
+    function addResult(lang, imageUrl) {
+      const label = languages.find((item) => item.key === lang)?.label || lang;
+      const card = document.createElement("article");
+      card.className = "result-card";
+      card.innerHTML = `
+        <img src="${imageUrl}" alt="${label} 输出图">
+        <div class="result-meta">
+          <strong>${label}</strong>
+          <a href="${imageUrl}" download="localized-${lang}.png">下载</a>
+        </div>
+      `;
+      $("results").appendChild(card);
+    }
+
+    function setButtonsDisabled(disabled) {
+      document.querySelectorAll("button").forEach((button) => {
+        if (!button.classList.contains("tab")) button.disabled = disabled;
+      });
+    }
+
+    function setStatus(kind, text) {
+      $("statusDot").className = `dot ${kind || ""}`;
+      $("statusText").textContent = text;
+    }
+
+    function setStep(step) {
+      document.querySelectorAll(".step").forEach((item) => item.classList.toggle("active", item.dataset.step === step));
+    }
+
+    function log(message) {
+      const time = new Date().toLocaleTimeString();
+      $("log").textContent += `\n[${time}] ${message}`;
+      $("log").scrollTop = $("log").scrollHeight;
+    }
+
+    init();
+  </script>
+</body>
+</html>
